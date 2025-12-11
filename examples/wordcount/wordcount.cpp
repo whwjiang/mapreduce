@@ -4,7 +4,7 @@
 #include <sstream>
 #include <vector>
 
-#include "../src/MapReduce.h"
+#include "MapReduce.h"
 
 namespace fs = std::filesystem;
 

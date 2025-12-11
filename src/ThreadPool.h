@@ -3,6 +3,7 @@
 #include <condition_variable>
 #include <functional>
 #include <future>
+#include <mutex>
 #include <queue>
 #include <thread>
 #include <vector>
@@ -15,17 +16,8 @@ class ThreadPool {
   std::atomic<bool> stop{false};
 
 public:
-  explicit ThreadPool(size_t n = std::thread::hardware_concurrency()) {
-    workers.reserve(n);
-    for (size_t i = 0; i < n; ++i)
-      workers.emplace_back([this] { worker_loop(); });
-  }
-
-  ~ThreadPool() {
-    stop = true;
-    cv.notify_all();
-    // jthread auto-joins on destruction
-  }
+  explicit ThreadPool(size_t n = std::thread::hardware_concurrency());
+  ~ThreadPool();
 
   template <typename F, typename... Args>
   auto enqueue(F &&f, Args &&...args)
@@ -44,18 +36,5 @@ public:
   }
 
 private:
-  void worker_loop() {
-    while (true) {
-      std::function<void()> job;
-      {
-        std::unique_lock lk(mtx);
-        cv.wait(lk, [this] { return stop || !tasks.empty(); });
-        if (stop && tasks.empty())
-          return;
-        job = std::move(tasks.front());
-        tasks.pop();
-      }
-      job();
-    }
-  }
+  void worker_loop();
 };

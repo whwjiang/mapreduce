@@ -45,5 +45,5 @@
 
 # local build artifacts and datasets
 /build/
-/examples/input/
-/examples/output/
+**/input/
+**/output/
