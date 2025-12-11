@@ -2,11 +2,13 @@
 #include <algorithm>
 #include <concepts>
 #include <filesystem>
+#include <format>
 #include <fstream>
 #include <future>
-#include <format>
 #include <mutex>
 #include <vector>
+
+#include <iostream>
 
 #include "ThreadPool.h"
 
@@ -31,7 +33,7 @@ concept MapperFn =
     };
 template <typename F, typename KOut, typename VOut, typename ROut>
 concept ReducerFn = requires(F f, KOut k, std::vector<VOut> vals,
-                             std::function<void(ROut)> emit) {
+                             std::function<void(KOut, ROut)> emit) {
   { f(k, vals, emit) };
 };
 template <typename T>
@@ -47,8 +49,8 @@ concept HashableOrderedInsertable =
     Hashable<T> && std::totally_ordered<T> && StreamInsertable<T>;
 
 // main entry point
-template <typename KIn, typename Input, HashableOrderedInsertable KOut,
-          typename VOut, StreamInsertable ROut, MapperFn<Input, KOut, VOut> M,
+template <typename Input, HashableOrderedInsertable KOut, typename VOut,
+          StreamInsertable ROut, MapperFn<Input, KOut, VOut> M,
           ReducerFn<KOut, VOut, ROut> R>
 void Run(const Job<M, R> &job) {
   ThreadPool pool(job.num_workers);
@@ -108,8 +110,9 @@ void Run(const Job<M, R> &job) {
       continue;
     }
     futures.push_back(pool.enqueue([&, i] {
-      std::string outfile = std::format(
-          "{}/output-{}-of-{}.txt", job.output_dir, i, job.num_reduce_tasks);
+      std::string outfile = std::format("{}/output-{}-of-{}.txt",
+                                        job.output_dir.string(), i,
+                                        job.num_reduce_tasks);
       std::ofstream fout(outfile, std::ios::app);
 
       auto emit = [&](const KOut &key, const ROut &value) {

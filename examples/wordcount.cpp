@@ -8,9 +8,8 @@
 
 namespace fs = std::filesystem;
 
-fs::path input_dir = "/home/vscode/source/projects/mapreduce/examples/input";
-
-fs::path output_dir = "/home/vscode/source/projects/mapreduce/examples/output";
+fs::path input_dir = "/home/whjiang/src/projects/mapreduce/examples/input";
+fs::path output_dir = "/home/whjiang/src/projects/mapreduce/examples/output";
 
 std::vector<fs::path> get_files_in_directory(const fs::path &path) {
   std::vector<fs::path> files;
@@ -56,5 +55,6 @@ int main() {
       mapper,      reducer,          inputs,          output_dir,
       num_workers, num_mapper_tasks, num_reduce_tasks};
 
+  mr::Run<fs::path, std::string, int, int>(job);
   return 0;
 }

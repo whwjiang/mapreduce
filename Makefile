@@ -1,5 +1,5 @@
 CXX      ?= g++
-CXXFLAGS ?= -std=c++20 -O2 -lstdc++fmt -Wall -Wextra -pedantic -I src
+CXXFLAGS ?= -std=c++26 -O2 -Wall -Wextra -Werror -pedantic -I src
 LDFLAGS  ?= -pthread
 BUILD    := build
 
